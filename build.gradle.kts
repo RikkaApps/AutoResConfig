@@ -21,7 +21,10 @@ subprojects {
     afterEvaluate {
         println("- Add publishing to module '${this.name}'")
 
-        val artifactName: String = this.name
+        val artifactName: String = when (this.name) {
+            "gradle-plugin" -> "$group.gradle.plugin"
+            else -> this.name
+        }
 
         val sourceSets = extensions.getByType(SourceSetContainer::class.java)
 
