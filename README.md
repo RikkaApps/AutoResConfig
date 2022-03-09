@@ -10,20 +10,28 @@ This plugin collect locales from `values-` folders, set `resConfig`, generate la
 
 ## Usage
 
-![gradle-plugin](https://img.shields.io/maven-central/v/dev.rikka.tools.autoresconfig/gradle-plugin?label=gradle-plugin)
+![gradle-plugin](https://img.shields.io/maven-central/v/dev.rikka.tools.autoresconfig/dev.rikka.tools.autoresconfig.gradle.plugin?label=gradle-plugin)
 
 Replace all the `<version>` below with the version shows here.
 
-1. Add gradle plugin to root project
-
+1. Add gradle plugin
+  
    ```groovy
+   // "old way"
    buildscript {
        repositories {
            mavenCentral()
        }
        dependencies {
-           classpath 'dev.rikka.tools.autoresconfig:gradle-plugin:<version>'
+           classpath 'dev.rikka.tools.autoresconfig:dev.rikka.tools.autoresconfig.gradle.plugin:<version>'
        }
+   }
+   ```
+
+   ```groovy
+   // "new way"
+   plugins {
+       id 'dev.rikka.tools.autoresconfig' version '<version>'
    }
    ```
 
