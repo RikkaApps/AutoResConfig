@@ -84,7 +84,6 @@ public class AutoResConfigPlugin implements Plugin<Project> {
         if (mergedFlavor instanceof AbstractProductFlavor) {
             //noinspection deprecation
             var flavor = (AbstractProductFlavor) mergedFlavor;
-            flavor.getResourceConfigurations().clear();
             flavor.addResourceConfigurations(modifiers);
             return true;
         } else {
