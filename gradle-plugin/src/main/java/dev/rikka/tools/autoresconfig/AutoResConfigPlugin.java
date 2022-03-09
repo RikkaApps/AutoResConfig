@@ -166,12 +166,14 @@ public class AutoResConfigPlugin implements Plugin<Project> {
                 var javaSourceDir = new File(project.getBuildDir(),
                         String.format("generated/auto_res_config/%s/java", variantName));
 
-                var generatedClassFullName = extension.getGeneratedClassFullName().get();
+                var taskName = String.format("generate%sAutoResConfigSource", variantNameCapitalized);
 
-                var generateJavaTask = project.getTasks().register(String.format("generate%sAutoResConfigSource", Util.capitalize(variant.getName())),
+                var generateJavaTask = project.getTasks().register(taskName,
                         GenerateJavaTask.class, extension, javaSourceDir, locales, displayLocales);
 
                 variant.registerJavaGeneratingTask(generateJavaTask, javaSourceDir);
+
+                logger.info("AutoResConfig: register " + taskName + " " + javaSourceDir);
 
                 var kotlinCompileTask = (SourceTask) project.getTasks().findByName("compile" + variantNameCapitalized + "Kotlin");
                 if (kotlinCompileTask != null) {
@@ -184,9 +186,15 @@ public class AutoResConfigPlugin implements Plugin<Project> {
                 var resDir = new File(project.getBuildDir(),
                         String.format("generated/auto_res_config/%s/res", variantName));
 
-                var generateResTask = project.getTasks().register(String.format("generate%sAutoResConfigRes", Util.capitalize(variant.getName())),
+                var taskName = String.format("generate%sAutoResConfigRes", variantNameCapitalized);
+
+                var generateResTask = project.getTasks().register(taskName,
                         GenerateResTask.class, extension, resDir, locales, displayLocales);
-                variant.registerGeneratedResFolders(project.files(resDir).builtBy());
+
+                variant.registerGeneratedResFolders(
+                        project.files(resDir).builtBy(generateResTask));
+
+                logger.info("AutoResConfig: register " + taskName + " " + resDir);
             }
         });
 
