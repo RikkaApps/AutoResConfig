@@ -6,24 +6,47 @@ import org.gradle.api.tasks.TaskAction;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Collection;
 
 public abstract class GenerateTask extends DefaultTask {
 
     protected final Collection<String> locales;
     protected final Collection<String> displayLocales;
-    private final File file;
+    private final File dir;
 
     @Inject
-    public GenerateTask(File file, Collection<String> locales, Collection<String> displayLocales) {
+    public GenerateTask(File dir, Collection<String> locales, Collection<String> displayLocales) {
         this.locales = locales;
         this.displayLocales = displayLocales;
-        this.file = file;
+        this.dir = dir;
     }
 
     @TaskAction
-    public void writeToFile() throws IOException {
+    public void generate() throws IOException {
+        try {
+            Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException ignored) {
+        }
+    }
+
+    public final void createFile(File file) throws IOException {
         if (!file.exists()) {
             if (!file.getParentFile().exists()) {
                 if (!file.getParentFile().mkdirs()) {
@@ -34,13 +57,6 @@ public abstract class GenerateTask extends DefaultTask {
                 throw new IOException("Failed to create " + file);
             }
         }
-
-        var os = new PrintStream(file);
-        onWrite(os);
-        os.flush();
-        os.close();
     }
-
-    public abstract void onWrite(PrintStream os);
 }
 

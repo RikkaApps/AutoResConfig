@@ -2,6 +2,7 @@ package dev.rikka.tools.autoresconfig;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -9,16 +10,29 @@ import java.util.stream.Collectors;
 public class GenerateResTask extends GenerateTask {
 
     private final AutoResConfigExtension extension;
+    private final File file;
 
     @Inject
-    public GenerateResTask(AutoResConfigExtension extension, File file, Collection<String> locales, Collection<String> displayLocales) {
-        super(new File(file, "values/arrays.xml"), locales, displayLocales);
+    public GenerateResTask(AutoResConfigExtension extension, File dir, Collection<String> locales, Collection<String> displayLocales) {
+        super(dir, locales, displayLocales);
 
         this.extension = extension;
+        this.file = new File(dir, "values/arrays.xml");
     }
 
     @Override
-    public void onWrite(PrintStream os) {
+    public void generate() throws IOException {
+        super.generate();
+
+        createFile(file);
+
+        var os = new PrintStream(file);
+        write(os);
+        os.flush();
+        os.close();
+    }
+
+    public void write(PrintStream os) {
         String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<resource>\n" +
                 "<string-array name=\"%s\">\n" +
