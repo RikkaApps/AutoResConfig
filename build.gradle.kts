@@ -7,7 +7,7 @@ buildscript {
 
 allprojects {
     group = "dev.rikka.tools.autoresconfig"
-    version = "1.0.1"
+    version = "1.1.0"
 }
 
 task("clean", type = Delete::class) {

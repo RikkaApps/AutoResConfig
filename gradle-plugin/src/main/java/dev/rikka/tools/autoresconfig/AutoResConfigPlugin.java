@@ -27,6 +27,7 @@ public class AutoResConfigPlugin implements Plugin<Project> {
     }
 
     private final Logger logger = Logging.getLogger(AutoResConfigPlugin.class);
+    private final Map<String, Set<String>> modifierCache = new HashMap<>();
 
     private void collectModifiers(File dir, Collection<String> output) throws IOException {
         if (!dir.exists() || !dir.isDirectory()) {
@@ -65,10 +66,9 @@ public class AutoResConfigPlugin implements Plugin<Project> {
         variant.getSourceSets().forEach(sourceProvider -> resDirs.addAll(sourceProvider.getResDirectories()));
 
         for (File dir : resDirs) {
-            try {
-                collectModifiers(dir, set);
-            } catch (Throwable e) {
-                logger.error("AutoResConfig: Failed to collect modifiers from " + dir, e);
+            Set<String> modifiers = modifierCache.get(dir.getAbsolutePath());
+            if (modifiers != null) {
+                set.addAll(modifiers);
             }
         }
 
@@ -140,6 +140,49 @@ public class AutoResConfigPlugin implements Plugin<Project> {
 
         var extension = project.getExtensions().create(
                 "autoResConfig", AutoResConfigExtension.class);
+
+        // Build a file path -> locale modifiers cache
+        modifierCache.clear();
+
+        appExtension.getSourceSets().all(sourceSet -> {
+            Set<String> mainModifiers = null;
+
+            logger.info("AutoResConfig: Collect locale modifiers for " + sourceSet.getName());
+
+            for (File dir : sourceSet.getRes().getSrcDirs()) {
+                var absolutePath = dir.getAbsolutePath();
+
+                var set = modifierCache.get(absolutePath);
+                if (set != null) continue;
+
+                set = new HashSet<>();
+                set.add("en");
+
+                modifierCache.put(absolutePath, set);
+
+                try {
+                    collectModifiers(dir, set);
+                } catch (IOException e) {
+                    logger.error("AutoResConfig: Failed to collect modifiers from " + dir, e);
+                }
+
+                if (sourceSet.getName().equals("main")) {
+                    mainModifiers = set;
+                }
+            }
+
+            if (sourceSet.getName().equals("main")) {
+                if (mainModifiers != null) {
+                    var list = new ArrayList<>(mainModifiers);
+                    list.sort(String.CASE_INSENSITIVE_ORDER);
+
+                    appExtension.getDefaultConfig().resConfigs(list);
+                    logger.info("AutoResConfig: Update default resConfig " + mainModifiers);
+                } else {
+                    logger.warn("AutoResConfig: mainModifiers is null");
+                }
+            }
+        });
 
         appExtension.getApplicationVariants().all(variant -> {
             var variantName = variant.getName();
