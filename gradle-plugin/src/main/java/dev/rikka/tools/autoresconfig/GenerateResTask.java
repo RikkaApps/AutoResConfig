@@ -12,7 +12,7 @@ public class GenerateResTask extends GenerateTask {
 
     @Inject
     public GenerateResTask(AutoResConfigExtension extension, File file, Collection<String> locales, Collection<String> displayLocales) {
-        super(new File(file, "arrays.xml"), locales, displayLocales);
+        super(new File(file, "values/arrays.xml"), locales, displayLocales);
 
         this.extension = extension;
     }
