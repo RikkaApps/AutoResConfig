@@ -1,98 +1,86 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        google()
-    }
-}
-
-allprojects {
-    group = "dev.rikka.tools.autoresconfig"
-    version = "1.1.0"
-}
-
 task("clean", type = Delete::class) {
     delete(buildDir)
 }
 
 subprojects {
-    apply(plugin = "maven-publish")
-    apply(plugin = "signing")
+    group = "dev.rikka.tools.autoresconfig"
+    version = "1.1.1"
 
-    afterEvaluate {
-        println("- Add publishing to module '${this.name}'")
+    plugins.withId("java") {
+        println("- Configuring `java`")
 
-        val artifactName: String = when (this.name) {
-            "gradle-plugin" -> "$group.gradle.plugin"
-            else -> this.name
+        extensions.configure<JavaPluginExtension> {
+            sourceCompatibility = JavaVersion.VERSION_11
+            targetCompatibility = JavaVersion.VERSION_11
         }
-
-        val sourceSets = extensions.getByType(SourceSetContainer::class.java)
-
-        val sourcesJar = tasks.register("sourcesJar", type = Jar::class) {
+        tasks.register("sourcesJar", type = Jar::class) {
             archiveClassifier.set("sources")
-            from(sourceSets.named("main").get().allSource)
+            from(project.extensions.getByType<SourceSetContainer>().getByName("main").allSource)
         }
-        val javadocJar = tasks.register("javadocJar", type = Jar::class) {
+        tasks.register("javadocJar", type = Jar::class) {
             archiveClassifier.set("javadoc")
             from(tasks["javadoc"])
         }
+        tasks.withType(Javadoc::class) {
+            isFailOnError = false
+        }
+    }
+    plugins.withId("maven-publish") {
+        println("- Configuring `publishing`")
 
-        val publishing = extensions.getByType(PublishingExtension::class.java).apply {
-            publications {
-                create("maven", type = MavenPublication::class) {
-                    this.artifactId = artifactName
-                    this.version = project.version.toString()
+        afterEvaluate {
+            extensions.configure<PublishingExtension> {
+                publications {
+                    withType(MavenPublication::class) {
+                        version = project.version.toString()
+                        group = project.group.toString()
 
-                    from(components["java"])
-
-                    artifact(javadocJar)
-                    artifact(sourcesJar)
-
-                    pom {
-                        name.set("AutoResConfig")
-                        description.set("AutoResConfig")
-                        url.set("https://github.com/RikkaApps/AutoResConfig")
-                        licenses {
-                            license {
-                                name.set("MIT License")
-                                url.set("https://github.com/RikkaApps/AutoResConfig/blob/main/LICENSE")
-                            }
-                        }
-                        developers {
-                            developer {
-                                name.set("RikkaW")
-                            }
-                        }
-                        scm {
-                            connection.set("scm:git:https://github.com/RikkaApps/AutoResConfig.git")
+                        pom {
+                            name.set("AutoResConfig")
+                            description.set("AutoResConfig")
                             url.set("https://github.com/RikkaApps/AutoResConfig")
+                            licenses {
+                                license {
+                                    name.set("MIT License")
+                                    url.set("https://github.com/RikkaApps/AutoResConfig/blob/main/LICENSE")
+                                }
+                            }
+                            developers {
+                                developer {
+                                    name.set("RikkaW")
+                                }
+                            }
+                            scm {
+                                connection.set("scm:git:https://github.com/RikkaApps/AutoResConfig.git")
+                                url.set("https://github.com/RikkaApps/AutoResConfig")
+                            }
                         }
                     }
                 }
-            }
-            repositories {
-                mavenLocal()
-                maven {
-                    name = "ossrh"
-                    url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
-                    credentials(PasswordCredentials::class.java)
+                repositories {
+                    mavenLocal()
+                    maven {
+                        name = "ossrh"
+                        url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+                        credentials(PasswordCredentials::class.java)
+                    }
                 }
             }
         }
+        plugins.withId("signing") {
+            println("- Configuring `signing`")
 
-        extensions.configure(SigningExtension::class) {
-            val signingKey = findProperty("signingKey") as? String
-            val signingPassword = findProperty("signingPassword") as? String
-            val secretKeyRingFile = findProperty("signing.secretKeyRingFile") as? String
+            afterEvaluate {
+                extensions.configure<SigningExtension> {
+                    if (findProperty("signing.gnupg.keyName") != null) {
+                        useGpgCmd()
 
-            if ((secretKeyRingFile != null && file(secretKeyRingFile).exists()) || signingKey != null) {
-                if (signingKey != null) {
-                    useInMemoryPgpKeys(signingKey, signingPassword)
+                        val signingTasks = sign(extensions.getByType<PublishingExtension>().publications)
+                        tasks.withType(AbstractPublishToMaven::class) {
+                            dependsOn(signingTasks)
+                        }
+                    }
                 }
-
-                val task = sign(publishing.publications)
-
-                tasks["publishMavenPublicationToOssrhRepository"].dependsOn(task)
             }
         }
     }

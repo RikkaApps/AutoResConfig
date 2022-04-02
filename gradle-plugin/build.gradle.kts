@@ -1,10 +1,9 @@
 plugins {
     java
     `java-gradle-plugin`
+    `maven-publish`
+    signing
 }
-
-val pluginId = "$group"
-val pluginClass = "$group.AutoResConfigPlugin"
 
 repositories {
     mavenCentral()
@@ -13,19 +12,35 @@ repositories {
 
 dependencies {
     compileOnly(gradleApi())
-    compileOnly("com.android.tools.build:gradle:7.0.4")
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    compileOnly(libs.android.gradle)
 }
 
 gradlePlugin {
     plugins {
         create("AutoResConfig") {
-            id = pluginId
-            implementationClass = pluginClass
+            id = project.group.toString()
+            displayName = "AutoResConfig"
+            description = "A gradle plugin generates resConfig & languages array from project res folder."
+            implementationClass = "$id.AutoResConfigPlugin"
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            named("pluginMaven", MavenPublication::class) {
+                artifactId = "gradle-plugin"
+
+                artifact(tasks["sourcesJar"])
+                artifact(tasks["javadocJar"])
+            }
+        }
+    }
+
+    tasks.withType(Jar::class) {
+        manifest {
+            attributes(mapOf("Implementation-Version" to project.version.toString()))
         }
     }
 }
