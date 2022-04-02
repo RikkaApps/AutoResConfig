@@ -23,7 +23,7 @@ Replace all the `<version>` below with the version shows here.
            mavenCentral()
        }
        dependencies {
-           classpath 'dev.rikka.tools.autoresconfig:dev.rikka.tools.autoresconfig.gradle.plugin:<version>'
+           classpath 'dev.rikka.tools.autoresconfig:gradle-plugin:<version>'
        }
    }
    ```
