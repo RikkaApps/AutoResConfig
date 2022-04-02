@@ -34,14 +34,14 @@ public class GenerateResTask extends GenerateTask {
 
     public void write(PrintStream os) {
         String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                "<resource>\n" +
+                "<resources>\n" +
                 "<string-array name=\"%s\">\n" +
                 "%s%s\n" +
                 "</string-array>\n" +
                 "<string-array name=\"%s\">\n" +
                 "%s%s\n" +
                 "</string-array>\n" +
-                "</resource>\n";
+                "</resources>\n";
 
         var prefix = extension.getGeneratedResPrefix().getOrElse("");
         var localesString = locales.stream().map(s -> "<item>" + s + "</item>").collect(Collectors.joining("\n"));
