@@ -51,5 +51,9 @@ Replace all the `<version>` below with the version shows here.
        generateRes = true
        generatedResPrefix = null
        generatedArrayFirstItem = "SYSTEM"
+   
+       // Generate Android 13 localeConfig xml
+       // see https://developer.android.com/about/versions/13/features/app-languages#use-localeconfig
+       generateLocaleConfig = true
    }
    ```

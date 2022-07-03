@@ -10,6 +10,8 @@ public abstract class AutoResConfigExtension {
 
     public abstract Property<Boolean> getGenerateRes();
 
+    public abstract Property<Boolean> getGenerateLocaleConfig();
+
     public abstract Property<String> getGeneratedResPrefix();
 
     public abstract Property<String> getGeneratedArrayFirstItem();
@@ -19,6 +21,7 @@ public abstract class AutoResConfigExtension {
         getGeneratedClassFullName().set("rikka.autoresconfig.AutoResConfigLocales");
         getGenerateRes().set(true);
         getGeneratedArrayFirstItem().set("SYSTEM");
+        getGenerateLocaleConfig().set(true);
     }
 
     @Override
@@ -29,6 +32,7 @@ public abstract class AutoResConfigExtension {
                 ", generateRes=" + getGenerateRes().get() +
                 ", generatedResPrefix=" + getGeneratedResPrefix().getOrElse("(null)") +
                 ", generatedArrayFirstItem=" + getGeneratedArrayFirstItem().get() +
+                ", generateLocaleConfig=" + getGenerateLocaleConfig().get() +
                 "}";
     }
 }

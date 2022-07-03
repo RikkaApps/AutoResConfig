@@ -238,6 +238,21 @@ public class AutoResConfigPlugin implements Plugin<Project> {
 
                 logger.info("AutoResConfig: register " + taskName + " " + resDir);
             }
+
+            if (extension.getGenerateLocaleConfig().get()) {
+                var resDir = new File(project.getBuildDir(),
+                        String.format("generated/auto_res_config/%s/res", variantName));
+
+                var taskName = String.format("generate%sAutoResConfigLocaleConfigRes", variantNameCapitalized);
+
+                var generateResTask = project.getTasks().register(taskName,
+                        GenerateLocaleConfigResTask.class, resDir, locales, displayLocales);
+
+                variant.registerGeneratedResFolders(
+                        project.files(resDir).builtBy(generateResTask));
+
+                logger.info("AutoResConfig: register " + taskName + " " + resDir);
+            }
         });
 
     }
