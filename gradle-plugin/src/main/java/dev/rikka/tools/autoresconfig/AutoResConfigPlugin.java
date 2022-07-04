@@ -216,12 +216,6 @@ public class AutoResConfigPlugin implements Plugin<Project> {
                 variant.registerJavaGeneratingTask(generateJavaTask, javaSourceDir);
 
                 logger.info("AutoResConfig: register " + taskName + " " + javaSourceDir);
-
-                var kotlinCompileTask = (SourceTask) project.getTasks().findByName("compile" + variantNameCapitalized + "Kotlin");
-                if (kotlinCompileTask != null) {
-                    kotlinCompileTask.dependsOn(generateJavaTask);
-                    kotlinCompileTask.source(generateJavaTask);
-                }
             }
 
             if (extension.getGenerateRes().get()) {

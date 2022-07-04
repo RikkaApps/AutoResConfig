@@ -4,7 +4,7 @@ task("clean", type = Delete::class) {
 
 subprojects {
     group = "dev.rikka.tools.autoresconfig"
-    version = "1.2.0"
+    version = "1.2.1"
 
     plugins.withId("java") {
         println("- Configuring `java`")
