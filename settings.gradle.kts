@@ -9,6 +9,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
 dependencyResolutionManagement {
     repositories {
@@ -17,7 +20,7 @@ dependencyResolutionManagement {
     }
     versionCatalogs {
         create("libs") {
-            val agp = "7.0.4"
+            val agp = "9.0.1"
 
             library("android-gradle", "com.android.tools.build", "gradle").version(agp)
         }

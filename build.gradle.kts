@@ -1,17 +1,17 @@
-task("clean", type = Delete::class) {
-    delete(buildDir)
+tasks.register<Delete>("clean") {
+    delete(rootProject.layout.buildDirectory)
 }
 
 subprojects {
     group = "dev.rikka.tools.autoresconfig"
-    version = "1.2.1"
+    version = "1.3.0"
 
     plugins.withId("java") {
         println("- Configuring `java`")
 
         extensions.configure<JavaPluginExtension> {
-            sourceCompatibility = JavaVersion.VERSION_11
-            targetCompatibility = JavaVersion.VERSION_11
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
         }
         tasks.register("sourcesJar", type = Jar::class) {
             archiveClassifier.set("sources")
@@ -61,7 +61,8 @@ subprojects {
                     mavenLocal()
                     maven {
                         name = "ossrh"
-                        url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
+                        url =
+                            uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2")
                         credentials(PasswordCredentials::class.java)
                     }
                 }
@@ -75,7 +76,8 @@ subprojects {
                     if (findProperty("signing.gnupg.keyName") != null) {
                         useGpgCmd()
 
-                        val signingTasks = sign(extensions.getByType<PublishingExtension>().publications)
+                        val signingTasks =
+                            sign(extensions.getByType<PublishingExtension>().publications)
                         tasks.withType(AbstractPublishToMaven::class) {
                             dependsOn(signingTasks)
                         }
@@ -84,4 +86,8 @@ subprojects {
             }
         }
     }
+}
+tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
+    languageVersion = JavaLanguageVersion.of(21)
+    vendor = JvmVendorSpec.ADOPTIUM
 }

@@ -1,51 +1,57 @@
 package dev.rikka.tools.autoresconfig;
 
-import javax.inject.Inject;
-import java.io.File;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Collection;
 import java.util.stream.Collectors;
 
-public class GenerateResTask extends GenerateTask {
+public abstract class GenerateResTask extends GenerateTask {
+    @Input
+    public abstract ListProperty<String> getLocales();
 
-    private final AutoResConfigExtension extension;
-    private final File file;
+    @Input
+    public abstract ListProperty<String> getDisplayLocales();
 
-    @Inject
-    public GenerateResTask(AutoResConfigExtension extension, File dir, Collection<String> locales, Collection<String> displayLocales) {
-        super(dir, locales, displayLocales);
+    @Input
+    public abstract Property<AutoResConfigExtension> getExtension();
 
-        this.extension = extension;
-        this.file = new File(dir, "values/arrays.xml");
-    }
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
 
     @Override
     public void generate() throws IOException {
         super.generate();
-
+        var extension = getExtension().get();
+        var file = getOutputDir().file("values/arrays.xml").get().getAsFile();
         createFile(file);
 
         var os = new PrintStream(file);
-        write(os);
+        write(os, extension);
         os.flush();
         os.close();
     }
 
-    public void write(PrintStream os) {
-        String content = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                "<resources>\n" +
-                "<string-array name=\"%s\">\n" +
-                "%s%s\n" +
-                "</string-array>\n" +
-                "<string-array name=\"%s\">\n" +
-                "%s%s\n" +
-                "</string-array>\n" +
-                "</resources>\n";
+    public void write(PrintStream os, AutoResConfigExtension extension) {
+        String content = """
+                <?xml version="1.0" encoding="utf-8"?>
+                <resources>
+                <string-array name="%s">
+                %s%s
+                </string-array>
+                <string-array name="%s">
+                %s%s
+                </string-array>
+                </resources>
+                """;
 
         var prefix = extension.getGeneratedResPrefix().getOrElse("");
-        var localesString = locales.stream().map(s -> "<item>" + s + "</item>").collect(Collectors.joining("\n"));
-        var displayLocalesString = displayLocales.stream().map(s -> "<item>" + s + "</item>").collect(Collectors.joining("\n"));
+        var localesString = getLocales().get().stream().map(s -> "<item>" + s + "</item>").collect(Collectors.joining("\n"));
+        var displayLocalesString = getDisplayLocales().get().stream().map(s -> "<item>" + s + "</item>").collect(Collectors.joining("\n"));
         var localesResName = prefix.isEmpty() ? "locales" : prefix + "_locales";
         var displayLocalesResName = prefix.isEmpty() ? "display_locales" : prefix + "_display_locales";
         var firstItem = extension.getGeneratedArrayFirstItem().getOrElse("").isEmpty() ? ""

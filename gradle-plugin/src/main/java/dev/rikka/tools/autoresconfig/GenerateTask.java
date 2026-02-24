@@ -1,49 +1,52 @@
 package dev.rikka.tools.autoresconfig;
 
-import org.gradle.api.DefaultTask;
-import org.gradle.api.tasks.TaskAction;
+import static java.nio.file.Files.delete;
 
-import javax.inject.Inject;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.jspecify.annotations.NonNull;
+
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collection;
 
 public abstract class GenerateTask extends DefaultTask {
 
-    protected final Collection<String> locales;
-    protected final Collection<String> displayLocales;
-    private final File dir;
+    @Input
+    public abstract ListProperty<String> getLocales();
 
-    @Inject
-    public GenerateTask(File dir, Collection<String> locales, Collection<String> displayLocales) {
-        this.locales = locales;
-        this.displayLocales = displayLocales;
-        this.dir = dir;
-    }
+    @Input
+    public abstract ListProperty<String> getDisplayLocales();
+
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
 
     @TaskAction
     public void generate() throws IOException {
-        try {
-            Files.walkFileTree(dir.toPath(), new SimpleFileVisitor<>() {
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    return FileVisitResult.CONTINUE;
-                }
+        getOutputDir().getAsFileTree().visit(
+                new FileVisitor() {
+                    @Override
+                    public void visitDir(@NonNull FileVisitDetails dirDetails) {
+                        try {
+                            delete(dirDetails.getFile().toPath());
+                        } catch (IOException ignored) {
+                        }
+                    }
 
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
+                    @Override
+                    public void visitFile(@NonNull FileVisitDetails fileDetails) {
+                        try {
+                            delete(fileDetails.getFile().toPath());
+                        } catch (IOException ignored) {
+                        }
+                    }
                 }
-            });
-        } catch (IOException ignored) {
-        }
+        );
     }
 
     public final void createFile(File file) throws IOException {
