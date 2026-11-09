@@ -2,6 +2,7 @@ package dev.rikka.tools.autoresconfig;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 
@@ -9,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.stream.Collectors;
 
+@CacheableTask
 public abstract class GenerateLocaleConfigResTask extends GenerateTask {
 
     @Input

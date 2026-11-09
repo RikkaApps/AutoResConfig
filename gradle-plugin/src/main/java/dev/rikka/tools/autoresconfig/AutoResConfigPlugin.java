@@ -222,7 +222,7 @@ public class AutoResConfigPlugin implements Plugin<Project> {
 
                 if (extension.getGenerateLocaleConfig().get()) {
                     var resDir = project.getLayout().getBuildDirectory()
-                            .dir(String.format("generated/auto_res_config/%s/res", variantName));
+                            .dir(String.format("generated/auto_res_config/%s/res_locale_config", variantName));
 
                     var taskName = String.format("generate%sAutoResConfigLocaleConfigRes", variantNameCapitalized);
 

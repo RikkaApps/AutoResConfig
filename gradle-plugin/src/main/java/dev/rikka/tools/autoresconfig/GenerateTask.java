@@ -7,6 +7,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -15,6 +16,7 @@ import org.jspecify.annotations.NonNull;
 import java.io.File;
 import java.io.IOException;
 
+@CacheableTask
 public abstract class GenerateTask extends DefaultTask {
 
     @Input
@@ -62,4 +64,3 @@ public abstract class GenerateTask extends DefaultTask {
         }
     }
 }
-
